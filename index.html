@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>臺北市政府社會局 — 業務綜覽儀表板</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --amber:   #F59E0B;
+      --amber-lt:#FEF3C7;
+      --orange:  #F97316;
+      --red:     #EF4444;
+      --rose:    #FB7185;
+      --teal:    #14B8A6;
+      --teal-lt: #CCFBF1;
+      --blue:    #3B82F6;
+      --blue-lt: #DBEAFE;
+      --purple:  #8B5CF6;
+      --purple-lt:#EDE9FE;
+      --green:   #22C55E;
+      --green-lt:#DCFCE7;
+      --bg:      #FFF8F0;
+      --surface: #FFFFFF;
+      --border:  #FFE4C4;
+      --text-h:  #1C1917;
+      --text-b:  #44403C;
+      --text-m:  #78716C;
+      --shadow:  0 2px 12px rgba(245,158,11,.12);
+      --shadow-lg:0 8px 32px rgba(245,158,11,.16);
+      --radius:  16px;
+      --radius-sm:10px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Noto Sans TC', 'PingFang TC', sans-serif;
+      background: var(--bg);
+      color: var(--text-b);
+      min-height: 100vh;
+    }
+
+    /* ─── Top Header ────────────────────────────────────────── */
+    .top-header {
+      background: linear-gradient(135deg, #FEF3C7 0%, #FFEDD5 40%, #FED7AA 100%);
+      border-bottom: 2px solid var(--border);
+      padding: 0 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 20px rgba(245,158,11,.18);
+    }
+    .top-header-inner {
+      max-width: 1600px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+    }
+    .logo-area { display: flex; align-items: center; gap: 1rem; }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--amber), var(--orange));
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 12px rgba(249,115,22,.35);
+    }
+    .logo-text h1 { font-size: 1.1rem; font-weight: 700; color: var(--text-h); line-height: 1.2; }
+    .logo-text p  { font-size: .75rem; color: var(--text-m); font-weight: 500; }
+    .header-meta {
+      display: flex; align-items: center; gap: 1.5rem;
+      font-size: .8rem; color: var(--text-m); font-weight: 500;
+    }
+    .header-meta .badge {
+      background: linear-gradient(135deg, var(--amber), var(--orange));
+      color: #fff;
+      padding: .3rem .85rem;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: .78rem;
+      box-shadow: 0 2px 8px rgba(249,115,22,.35);
+    }
+    .header-meta .date-tag {
+      background: rgba(255,255,255,.7);
+      border: 1px solid var(--border);
+      padding: .28rem .75rem;
+      border-radius: 20px;
+      font-size: .75rem;
+    }
+
+    /* ─── Nav Tabs ──────────────────────────────────────────── */
+    .nav-bar {
+      background: rgba(255,255,255,.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      position: sticky;
+      top: 68px;
+      z-index: 90;
+    }
+    .nav-inner {
+      max-width: 1600px; margin: 0 auto;
+      display: flex; align-items: center; gap: .25rem;
+      overflow-x: auto; scrollbar-width: none;
+      height: 48px;
+    }
+    .nav-inner::-webkit-scrollbar { display: none; }
+    .nav-tab {
+      padding: .35rem 1.1rem;
+      border-radius: 8px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--text-m);
+      cursor: pointer;
+      white-space: nowrap;
+      border: none;
+      background: transparent;
+      transition: all .2s;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .nav-tab:hover   { background: var(--amber-lt); color: var(--orange); }
+    .nav-tab.active  { background: linear-gradient(135deg,var(--amber),var(--orange)); color: #fff; box-shadow:0 2px 10px rgba(249,115,22,.35); }
+    .nav-tab .dot { width:8px; height:8px; border-radius:50%; }
+
+    /* ─── Main Layout ───────────────────────────────────────── */
+    .main { max-width: 1600px; margin: 0 auto; padding: 1.5rem 2rem 3rem; }
+
+    /* ─── Section Headers ───────────────────────────────────── */
+    .section { margin-bottom: 2.5rem; }
+    .section-header {
+      display: flex; align-items: center; gap: .75rem;
+      margin-bottom: 1.25rem;
+    }
+    .section-icon {
+      width: 40px; height: 40px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .section-header h2 { font-size: 1.15rem; font-weight: 700; color: var(--text-h); }
+    .section-header .sub { font-size: .8rem; color: var(--text-m); font-weight: 400; margin-top: .15rem; }
+    .section-divider { height: 2px; border-radius: 2px; flex: 1; margin-left: .5rem; }
+
+    /* ─── Grid Layouts ──────────────────────────────────────── */
+    .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+    .grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+    .grid-1-2 { display: grid; grid-template-columns: 1fr 2fr; gap: 1rem; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 1rem; }
+
+    /* ─── KPI Card ──────────────────────────────────────────── */
+    .kpi {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.25rem 1.4rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,228,196,.6);
+      transition: transform .2s, box-shadow .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+    .kpi-glow {
+      position: absolute;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      top: -20px; right: -20px;
+      opacity: .12;
+    }
+    .kpi-label { font-size: .75rem; font-weight: 600; color: var(--text-m); margin-bottom: .4rem; letter-spacing: .04em; }
+    .kpi-value { font-size: 1.8rem; font-weight: 900; line-height: 1; margin-bottom: .35rem; }
+    .kpi-sub   { font-size: .72rem; color: var(--text-m); }
+    .kpi-trend {
+      display: inline-flex; align-items: center; gap: .25rem;
+      padding: .18rem .55rem; border-radius: 20px;
+      font-size: .7rem; font-weight: 700; margin-top: .4rem;
+    }
+    .trend-up   { background: #DCFCE7; color: #16A34A; }
+    .trend-down { background: #FEE2E2; color: #DC2626; }
+    .trend-neutral { background: #F3F4F6; color: #6B7280; }
+
+    /* ─── Chart Card ────────────────────────────────────────── */
+    .chart-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,228,196,.6);
+      transition: box-shadow .2s;
+    }
+    .chart-card:hover { box-shadow: var(--shadow-lg); }
+    .chart-title {
+      font-size: .9rem; font-weight: 700; color: var(--text-h);
+      margin-bottom: .25rem;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .chart-title .chip {
+      font-size: .65rem; font-weight: 700;
+      padding: .15rem .5rem; border-radius: 10px;
+    }
+    .chart-note { font-size: .7rem; color: var(--text-m); margin-bottom: 1rem; }
+    .chart-wrap { position: relative; }
+
+    /* ─── Progress Bar Item ─────────────────────────────────── */
+    .prog-item { margin-bottom: .85rem; }
+    .prog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .3rem; }
+    .prog-label  { font-size: .78rem; font-weight: 600; color: var(--text-b); }
+    .prog-value  { font-size: .78rem; font-weight: 700; }
+    .prog-bar-bg { height: 8px; background: #F5F5F4; border-radius: 10px; overflow: hidden; }
+    .prog-bar-fill { height: 100%; border-radius: 10px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+    /* ─── List Items ─────────────────────────────────────────── */
+    .list-item {
+      display: flex; align-items: flex-start; gap: .75rem;
+      padding: .7rem 0;
+      border-bottom: 1px solid #F5F5F4;
+    }
+    .list-item:last-child { border-bottom: none; }
+    .list-bullet {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; flex-shrink: 0;
+    }
+    .list-body { flex: 1; }
+    .list-title { font-size: .82rem; font-weight: 600; color: var(--text-h); }
+    .list-desc  { font-size: .72rem; color: var(--text-m); margin-top: .15rem; }
+    .list-num   { font-size: .92rem; font-weight: 800; white-space: nowrap; }
+
+    /* ─── Highlight Box ─────────────────────────────────────── */
+    .highlight-box {
+      border-radius: var(--radius-sm);
+      padding: .9rem 1.1rem;
+      margin-bottom: .75rem;
+      display: flex; align-items: center; gap: .75rem;
+    }
+    .highlight-icon { font-size: 1.5rem; }
+    .highlight-label { font-size: .72rem; font-weight: 600; opacity: .8; }
+    .highlight-val   { font-size: 1.3rem; font-weight: 800; line-height: 1.2; }
+
+    /* ─── Tag ───────────────────────────────────────────────── */
+    .tag {
+      display: inline-flex; align-items: center; gap: .3rem;
+      padding: .25rem .65rem; border-radius: 20px;
+      font-size: .7rem; font-weight: 700;
+    }
+
+    /* ─── Alert / Warning ───────────────────────────────────── */
+    .alert {
+      background: #FFF7ED;
+      border: 1px solid #FED7AA;
+      border-left: 4px solid var(--orange);
+      border-radius: var(--radius-sm);
+      padding: .8rem 1rem;
+      font-size: .78rem;
+      line-height: 1.6;
+      color: var(--text-b);
+      margin-top: .75rem;
+    }
+
+    /* ─── Stat Grid ─────────────────────────────────────────── */
+    .stat-grid {
+      display: grid; grid-template-columns: repeat(2,1fr); gap: .75rem;
+    }
+    .stat-block {
+      background: linear-gradient(135deg, #FAFAF9, #FFF8F0);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .8rem 1rem;
+    }
+    .stat-block .label { font-size: .7rem; color: var(--text-m); font-weight: 600; }
+    .stat-block .val   { font-size: 1.2rem; font-weight: 800; color: var(--text-h); margin-top: .15rem; }
+    .stat-block .unit  { font-size: .65rem; color: var(--text-m); font-weight: 500; }
+
+    /* ─── Footer ────────────────────────────────────────────── */
+    footer {
+      background: linear-gradient(135deg,#FEF3C7,#FFEDD5);
+      border-top: 1px solid var(--border);
+      text-align: center;
+      padding: 1.5rem;
+      font-size: .75rem;
+      color: var(--text-m);
+    }
+    footer strong { color: var(--orange); }
+
+    /* ─── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #FBBF24; border-radius: 3px; }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 1200px) {
+      .grid-4 { grid-template-columns: repeat(2,1fr); }
+      .grid-5 { grid-template-columns: repeat(3,1fr); }
+    }
+    @media (max-width: 900px) {
+      .grid-3, .grid-2-1, .grid-1-2 { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .main { padding: 1rem 1rem 3rem; }
+    }
+    @media (max-width: 600px) {
+      .grid-4, .grid-5 { grid-template-columns: repeat(2,1fr); }
+    }
+
+    /* ─── Animate on load ───────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(16px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .section { animation: fadeUp .5s ease both; }
+    .section:nth-child(1) { animation-delay: .05s; }
+    .section:nth-child(2) { animation-delay: .10s; }
+    .section:nth-child(3) { animation-delay: .15s; }
+    .section:nth-child(4) { animation-delay: .20s; }
+    .section:nth-child(5) { animation-delay: .25s; }
+    .section:nth-child(6) { animation-delay: .30s; }
+    .section:nth-child(7) { animation-delay: .35s; }
+
+    /* ─── Print / PDF ───────────────────────────────────── */
+    @media print {
+      *, *::before, *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      html, body { background: #FFF8F0 !important; }
+      .top-header { position: relative !important; top: auto !important; }
+      .nav-bar { display: none !important; }
+      .section {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        page-break-before: always;
+        page-break-inside: avoid;
+      }
+      .section:first-child { page-break-before: avoid; }
+      .card { page-break-inside: avoid; }
+      .chart-wrap canvas { max-height: 220px !important; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════ TOP HEADER ══════════════════════ -->
+<header class="top-header">
+  <div class="top-header-inner">
+    <div class="logo-area">
+      <div class="logo-icon">🏛️</div>
+      <div class="logo-text">
+        <h1>臺北市政府社會局</h1>
+        <p>業務綜覽儀表板 · Bureau of Social Welfare Dashboard</p>
+      </div>
+    </div>
+    <div class="header-meta">
+      <span class="date-tag">📅 資料基準：114 年 12 月底</span>
+      <span class="date-tag">🗂 第 14 屆第 7 次定期大會工作報告</span>
+      <span class="badge">114 年執行成果</span>
+    </div>
+  </div>
+</header>
+
+<!-- ══════════════════════ NAV TABS ══════════════════════ -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <button class="nav-tab active" onclick="navTo(this,'pop')">
+      <span class="dot" style="background:#F59E0B"></span>人口結構
+    </button>
+    <button class="nav-tab" onclick="navTo(this,'child')">
+      <span class="dot" style="background:#FB7185"></span>育兒支持
+    </button>
+    <button class="nav-tab" onclick="navTo(this,'disable')">
+      <span class="dot" style="background:#8B5CF6"></span>身障服務
+    </button>
+    <button class="nav-tab" onclick="navTo(this,'elderly')">
+      <span class="dot" style="background:#14B8A6"></span>高齡照顧
+    </button>
+    <button class="nav-tab" onclick="navTo(this,'welfare')">
+      <span class="dot" style="background:#F97316"></span>弱勢扶助
+    </button>
+    <button class="nav-tab" onclick="navTo(this,'protect')">
+      <span class="dot" style="background:#EF4444"></span>保護服務
+    </button>
+    <button class="nav-tab" onclick="navTo(this,'budget')">
+      <span class="dot" style="background:#3B82F6"></span>預算資源
+    </button>
+  </div>
+</nav>
+
+<main class="main">
+
+  <!-- ══════════════════════ SECTION 1 — POPULATION ══════════════════════ -->
+  <section class="section" id="pop">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#FEF3C7,#FDE68A);">👥</div>
+      <div>
+        <h2>人口結構與社福服務族群</h2>
+        <p class="sub">臺北市各福利別人口現況（114 年 12 月底）</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#F59E0B,transparent)"></div>
+    </div>
+
+    <!-- KPI Row 1 -->
+    <div class="grid-5" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F59E0B"></div>
+        <div class="kpi-label">全市總人口</div>
+        <div class="kpi-value" style="color:#F59E0B">243.9<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">2,439,507 人</div>
+        <div class="kpi-trend trend-down">↓ 較 113 年減少 51,362 人</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#FB7185"></div>
+        <div class="kpi-label">兒童人口（0–11 歲）</div>
+        <div class="kpi-value" style="color:#FB7185">22.2<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">221,711 人</div>
+        <div class="kpi-trend trend-down">↓ 持續下降趨勢</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#14B8A6"></div>
+        <div class="kpi-label">老年人口（65 歲以上）</div>
+        <div class="kpi-value" style="color:#14B8A6">58.9<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">589,801 人</div>
+        <div class="kpi-trend trend-up">↑ 占全市 24.2%，持續攀升</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#8B5CF6"></div>
+        <div class="kpi-label">身心障礙人口</div>
+        <div class="kpi-value" style="color:#8B5CF6">12.2<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">121,813 人</div>
+        <div class="kpi-trend trend-up">↑ 較 105 年增 59 人</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F97316"></div>
+        <div class="kpi-label">低收入戶（人數）</div>
+        <div class="kpi-value" style="color:#F97316">3.82<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">38,208 人｜20,476 戶</div>
+        <div class="kpi-trend trend-down">↓ 較 113 年減少 2,470 人</div>
+      </div>
+    </div>
+
+    <!-- Population Trend Chart -->
+    <div class="grid-2-1">
+      <div class="chart-card">
+        <div class="chart-title">📊 臺北市各族群人口趨勢（105–114 年）</div>
+        <div class="chart-note">資料來源：社會局統計資料｜單位：萬人</div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="popTrend"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🥧 114 年人口結構分布</div>
+        <div class="chart-note">各服務族群占總人口比例</div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="popPie"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 2 — CHILDCARE ══════════════════════ -->
+  <section class="section" id="child">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#FCE7F3,#FBCFE8);">🍼</div>
+      <div>
+        <h2>強化育兒支持網絡，安心生養守護成長</h2>
+        <p class="sub">托育量能・育兒補助・好孕專車・兒少服務</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#FB7185,transparent)"></div>
+    </div>
+
+    <!-- KPI -->
+    <div class="grid-4" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#FB7185"></div>
+        <div class="kpi-label">公辦民營托嬰機構（家）</div>
+        <div class="kpi-value" style="color:#FB7185">92</div>
+        <div class="kpi-sub">托嬰中心 29 家 ＋ 社區托育家園 63 家</div>
+        <div class="kpi-trend trend-neutral">收托 2,008 人</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F59E0B"></div>
+        <div class="kpi-label">準公共化供給率</div>
+        <div class="kpi-value" style="color:#F59E0B">81<span style="font-size:1.1rem;font-weight:700">%</span></div>
+        <div class="kpi-sub">整體公共化托育服務占比</div>
+        <div class="kpi-trend trend-up">↑ 持續提升</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F97316"></div>
+        <div class="kpi-label">友善托育補助（人次）</div>
+        <div class="kpi-value" style="color:#F97316">15.2<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">補助 13,815 人｜151,870 人次</div>
+        <div class="kpi-trend trend-up">↑ 持續擴大補助</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#EC4899"></div>
+        <div class="kpi-label">育兒友善園服務（人次）</div>
+        <div class="kpi-value" style="color:#EC4899">21.7<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">217,440 人次｜13 處據點</div>
+        <div class="kpi-trend trend-neutral">全年服務</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <!-- 好孕專車 -->
+      <div class="chart-card">
+        <div class="chart-title">🚕 好孕 2U 孕婦乘車補助（114 年）</div>
+        <div class="chart-note">全年累計服務統計</div>
+        <div style="display:flex;flex-direction:column;gap:.6rem;margin-top:.5rem;">
+          <div class="highlight-box" style="background:#FFF0F6;border:1px solid #FBCFE8;">
+            <span class="highlight-icon">👶</span>
+            <div>
+              <div class="highlight-label" style="color:#DB2777;">核發孕婦人數</div>
+              <div class="highlight-val" style="color:#DB2777;">9,222 <span style="font-size:.8rem;font-weight:600">人</span></div>
+            </div>
+          </div>
+          <div class="highlight-box" style="background:#FFF7ED;border:1px solid #FED7AA;">
+            <span class="highlight-icon">🛣️</span>
+            <div>
+              <div class="highlight-label" style="color:#EA580C;">服務趟次</div>
+              <div class="highlight-val" style="color:#EA580C;">346,017 <span style="font-size:.8rem;font-weight:600">趟</span></div>
+            </div>
+          </div>
+          <div class="highlight-box" style="background:#FFFBEB;border:1px solid #FDE68A;">
+            <span class="highlight-icon">💰</span>
+            <div>
+              <div class="highlight-label" style="color:#D97706;">補助金額</div>
+              <div class="highlight-val" style="color:#D97706;">6,533 <span style="font-size:.8rem;font-weight:600">萬元</span></div>
+            </div>
+          </div>
+          <div class="alert">🆕 115 年首創結合 Uber 多元計程車，車輛數翻倍、兒童安全座椅數量領先全國。</div>
+        </div>
+      </div>
+
+      <!-- 托育量能 Bar Chart -->
+      <div class="chart-card">
+        <div class="chart-title">📦 各類托育服務量能（家/處）</div>
+        <div class="chart-note">截至 114 年 12 月底</div>
+        <div class="chart-wrap" style="height:250px;">
+          <canvas id="childcareBar"></canvas>
+        </div>
+      </div>
+
+      <!-- 親子服務 -->
+      <div class="chart-card">
+        <div class="chart-title">🏡 親子服務據點與使用</div>
+        <div class="chart-note">114 年各類據點服務成果</div>
+        <div style="margin-top:.5rem;">
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FCE7F3;">🏠</div>
+            <div class="list-body">
+              <div class="list-title">親子館</div>
+              <div class="list-desc">13 處｜增設學齡兒童專區</div>
+            </div>
+            <div class="list-num" style="color:#DB2777;">13 處</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FFF7ED;">🎪</div>
+            <div class="list-body">
+              <div class="list-title">定點臨托服務</div>
+              <div class="list-desc">24 處據點｜全區均有布建</div>
+            </div>
+            <div class="list-num" style="color:#EA580C;">12,989 人次</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FFFBEB;">🧸</div>
+            <div class="list-body">
+              <div class="list-title">玩具轉運站（交換）</div>
+              <div class="list-desc">3,939 件交換｜3,146 人參與</div>
+            </div>
+            <div class="list-num" style="color:#D97706;">3,939 件</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#F0FDF4;">🚇</div>
+            <div class="list-body">
+              <div class="list-title">兒童捷運 4 折優惠（6–12 歲）</div>
+              <div class="list-desc">約 13 萬名兒童受惠</div>
+            </div>
+            <div class="list-num" style="color:#16A34A;">455.9 萬人次</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#EDE9FE;">👶</div>
+            <div class="list-body">
+              <div class="list-title">嬰幼兒照顧諮詢</div>
+              <div class="list-desc">育兒資源暨培力中心提供</div>
+            </div>
+            <div class="list-num" style="color:#7C3AED;">4,232 人次</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 兒少保護與服務 -->
+    <div class="grid-2" style="margin-top:1rem;">
+      <div class="chart-card">
+        <div class="chart-title">🛡️ 兒少保護安置與服務</div>
+        <div class="chart-note">114 年 1–12 月統計</div>
+        <div class="stat-grid">
+          <div class="stat-block">
+            <div class="label">兒少安置機構</div>
+            <div class="val">14 <span class="unit">家</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">寄養家庭</div>
+            <div class="val">71 <span class="unit">家</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">兒少保護通報（處理）</div>
+            <div class="val">3,241 <span class="unit">件</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">累積服務兒少</div>
+            <div class="val">4,715 <span class="unit">名</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">兒少服務據點</div>
+            <div class="val">35 <span class="unit">處</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">少年服務中心個案</div>
+            <div class="val">843 <span class="unit">名</span></div>
+          </div>
+        </div>
+        <div style="margin-top:.75rem;display:flex;flex-wrap:wrap;gap:.4rem;">
+          <span class="tag" style="background:#EDE9FE;color:#7C3AED;">青少年自立住宅：2 處 21 床｜服務 22 名</span>
+          <span class="tag" style="background:#DCFCE7;color:#16A34A;">已順利自立：11 名</span>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🌱 早療服務與弱勢醫療補助</div>
+        <div class="chart-note">114 年服務成果</div>
+        <div class="stat-grid">
+          <div class="stat-block">
+            <div class="label">早療通報案件</div>
+            <div class="val">3,629 <span class="unit">件</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">早療社區資源中心</div>
+            <div class="val">6 <span class="unit">處</span>｜4,971 人</div>
+          </div>
+          <div class="stat-block">
+            <div class="label">弱勢兒少醫療補助（人）</div>
+            <div class="val">376 <span class="unit">人</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">補助總金額</div>
+            <div class="val">1,696 <span class="unit">萬元</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">性剝削案件</div>
+            <div class="val">310 <span class="unit">件</span></div>
+          </div>
+          <div class="stat-block">
+            <div class="label">性影像通報處理</div>
+            <div class="val">177 <span class="unit">件</span>｜258 平臺</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 3 — DISABILITY ══════════════════════ -->
+  <section class="section" id="disable">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#EDE9FE,#DDD6FE);">♿</div>
+      <div>
+        <h2>身心障礙者照顧支持及安置服務</h2>
+        <p class="sub">多元服務據點・輔具・愛心卡・自立生活</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#8B5CF6,transparent)"></div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#8B5CF6"></div>
+        <div class="kpi-label">身心障礙人口</div>
+        <div class="kpi-value" style="color:#8B5CF6">12.2<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">121,813 人（114 年底）</div>
+        <div class="kpi-trend trend-up">↑ 較上年度持平略增</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#14B8A6"></div>
+        <div class="kpi-label">愛心卡（有效張數）</div>
+        <div class="kpi-value" style="color:#14B8A6">9.66<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">96,623 張｜累計使用 2,077 萬人次</div>
+        <div class="kpi-trend trend-up">↑ 使用量持續成長</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F59E0B"></div>
+        <div class="kpi-label">輔具服務（人）</div>
+        <div class="kpi-value" style="color:#F59E0B">11.4<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">113,514 人｜134,297 人次</div>
+        <div class="kpi-trend trend-neutral">3 家中心 ＋ 6 處據點</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#EF4444"></div>
+        <div class="kpi-label">久任獎助受益人員</div>
+        <div class="kpi-value" style="color:#EF4444">751</div>
+        <div class="kpi-sub">114 年試辦計畫受益專任人員</div>
+        <div class="kpi-trend trend-neutral">首年試辦</div>
+      </div>
+    </div>
+
+    <div class="grid-2-1">
+      <!-- 服務量能圖 -->
+      <div class="chart-card">
+        <div class="chart-title">📊 身障各類社區服務量能（114 年）</div>
+        <div class="chart-note">各服務類型服務人次</div>
+        <div class="chart-wrap" style="height:280px;">
+          <canvas id="disabilityBar"></canvas>
+        </div>
+      </div>
+
+      <!-- 服務據點清單 -->
+      <div class="chart-card">
+        <div class="chart-title">📍 服務據點布建</div>
+        <div class="chart-note">截至 114 年 12 月底</div>
+        <div style="margin-top:.5rem;">
+          <div class="list-item">
+            <div class="list-bullet" style="background:#EDE9FE;">🏢</div>
+            <div class="list-body">
+              <div class="list-title">身障者服務中心</div>
+              <div class="list-desc">每 2 區設 1 處；提供個案服務 6,659 案</div>
+            </div>
+            <div class="list-num" style="color:#7C3AED;">6 處</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#CCFBF1;">🌞</div>
+            <div class="list-body">
+              <div class="list-title">社區日間作業設施</div>
+              <div class="list-desc">每區至少 1 處，服務 522 人</div>
+            </div>
+            <div class="list-num" style="color:#0D9488;">29 處</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#DBEAFE;">🏡</div>
+            <div class="list-body">
+              <div class="list-title">社區居住家園</div>
+              <div class="list-desc">服務 92 人｜22,863 人次</div>
+            </div>
+            <div class="list-num" style="color:#2563EB;">18 處</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FCE7F3;">🤝</div>
+            <div class="list-body">
+              <div class="list-title">精神障礙者會所</div>
+              <div class="list-desc">752 位會員｜17,295 人次</div>
+            </div>
+            <div class="list-num" style="color:#DB2777;">4 家</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FFFBEB;">💪</div>
+            <div class="list-body">
+              <div class="list-title">自立生活支持服務中心</div>
+              <div class="list-desc">服務 104 人｜11,832 人次</div>
+            </div>
+            <div class="list-num" style="color:#D97706;">1 處</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 4 — ELDERLY ══════════════════════ -->
+  <section class="section" id="elderly">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#CCFBF1,#99F6E4);">🧓</div>
+      <div>
+        <h2>構築高齡樂活城市，完善優質照顧服務</h2>
+        <p class="sub">敬老卡・社區照顧關懷據點・長照服務・居家服務</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#14B8A6,transparent)"></div>
+    </div>
+
+    <div class="grid-5" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#14B8A6"></div>
+        <div class="kpi-label">老年人口（65 歲以上）</div>
+        <div class="kpi-value" style="color:#14B8A6">58.9<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">589,801 人</div>
+        <div class="kpi-trend trend-up">↑ 占全市 24.2%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#0D9488"></div>
+        <div class="kpi-label">敬老卡持卡數</div>
+        <div class="kpi-value" style="color:#0D9488">52.5<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">524,871 張（愛心卡敬老 ≈ 4.9 萬）</div>
+        <div class="kpi-trend trend-up">↑ 持卡率 89%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#0891B2"></div>
+        <div class="kpi-label">社區照顧關懷據點</div>
+        <div class="kpi-value" style="color:#0891B2">510</div>
+        <div class="kpi-sub">涵蓋 361 里｜里涵蓋率 79.17%</div>
+        <div class="kpi-trend trend-up">↑ 持續布建</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F59E0B"></div>
+        <div class="kpi-label">居家服務（人）</div>
+        <div class="kpi-value" style="color:#F59E0B">3.79<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">37,927 人｜553.3 萬人次</div>
+        <div class="kpi-trend trend-up">↑ 特約 185 家機構</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#7C3AED"></div>
+        <div class="kpi-label">長照交通接送</div>
+        <div class="kpi-value" style="color:#7C3AED">45.9<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">459,692 趟次｜413 輛車輛</div>
+        <div class="kpi-trend trend-up">↑ 24 家服務單位</div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <!-- 敬老卡擴大方案 -->
+      <div class="chart-card">
+        <div class="chart-title">🎴 敬老卡服務擴大進程</div>
+        <div class="chart-note">114–115 年政策亮點</div>
+        <div style="margin-top:.5rem;">
+          <div class="list-item">
+            <div class="list-bullet" style="background:#CCFBF1;">📅</div>
+            <div class="list-body">
+              <div class="list-title">114/1 起</div>
+              <div class="list-desc">中低收入長者可扣抵聯醫 7 大院區掛號費（每次最高 50 點）</div>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FFFBEB;">📅</div>
+            <div class="list-body">
+              <div class="list-title">115/1 起</div>
+              <div class="list-desc">擴及一般長者 ＋ 14 處院外門診；聯醫老健檢納入</div>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FFF0F6;">📅</div>
+            <div class="list-body">
+              <div class="list-title">115/2 起</div>
+              <div class="list-desc">計程車補助由 65 點調高至 85 點；可用於溫泉大眾池</div>
+            </div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#EDE9FE;">📅</div>
+            <div class="list-body">
+              <div class="list-title">115/7 起</div>
+              <div class="list-desc">每月點數由 480 提升至 600 點；擴增國道客運路線</div>
+            </div>
+          </div>
+        </div>
+        <div class="alert">重陽敬老禮金：85–98 歲長者由 1,500 元 <strong>提升至 3,000 元</strong>（114 年起）</div>
+      </div>
+
+      <!-- 長照服務指標全覽（合併版，2 欄寬） -->
+      <div class="chart-card" style="grid-column: span 2;">
+        <div class="chart-title">🏥 高齡長照服務指標全覽（114 年）</div>
+
+        <!-- 社區與居家 -->
+        <div style="font-size:.7rem;font-weight:700;color:#78716C;letter-spacing:.08em;margin:.85rem 0 .5rem;padding-bottom:.35rem;border-bottom:1px solid #F5F5F4;">
+          社區與居家照顧
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;">
+          <div style="background:#F5F3FF;border:1px solid #DDD6FE;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#7C3AED;margin-bottom:.35rem;">🏘️ 社區照顧關懷據點</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#7C3AED;line-height:1;">510<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">處</span></div>
+            <div style="font-size:.68rem;color:#4C1D95;margin-top:.2rem;">涵蓋 361 里｜里涵蓋率 79.17%</div>
+          </div>
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#2563EB;margin-bottom:.35rem;">🏢 老人服務中心</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#2563EB;line-height:1;">13<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">家</span></div>
+            <div style="font-size:.68rem;color:#1E3A8A;margin-top:.2rem;">12 行政區全覆蓋｜參與 23.4 萬人次</div>
+          </div>
+          <div style="background:#F0FDFA;border:1px solid #99F6E4;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#0D9488;margin-bottom:.35rem;">🏠 居家服務</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#0D9488;line-height:1;">37,927<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">人</span></div>
+            <div style="font-size:.68rem;color:#134E4A;margin-top:.2rem;">累計 553.3 萬人次｜特約 185 家機構</div>
+          </div>
+        </div>
+
+        <!-- 機動與支持 -->
+        <div style="font-size:.7rem;font-weight:700;color:#78716C;letter-spacing:.08em;margin:.85rem 0 .5rem;padding-bottom:.35rem;border-bottom:1px solid #F5F5F4;">
+          機動交通與照顧者支持
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;">
+          <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#D97706;margin-bottom:.35rem;">🚌 長照交通接送</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#D97706;line-height:1;">459,692<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">趟次</span></div>
+            <div style="font-size:.68rem;color:#78350F;margin-top:.2rem;">413 輛車｜24 家服務單位</div>
+          </div>
+          <div style="background:#FFF0F6;border:1px solid #FBCFE8;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#DB2777;margin-bottom:.35rem;">🤝 家庭照顧者支持</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#DB2777;line-height:1;">17,596<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">人次</span></div>
+            <div style="font-size:.68rem;color:#831843;margin-top:.2rem;">8 處共融據點｜912 處照顧小站</div>
+          </div>
+          <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#059669;margin-bottom:.35rem;">🆘 緊急救援系統</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#059669;line-height:1;">46,796<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">人次</span></div>
+            <div style="font-size:.68rem;color:#064E3B;margin-top:.2rem;">24 小時守護｜醫療求救 369 人</div>
+          </div>
+        </div>
+
+        <!-- 機構與獨居 -->
+        <div style="font-size:.7rem;font-weight:700;color:#78716C;letter-spacing:.08em;margin:.85rem 0 .5rem;padding-bottom:.35rem;border-bottom:1px solid #F5F5F4;">
+          機構照顧與獨居關懷
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;">
+          <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#1D4ED8;margin-bottom:.35rem;">☀️ 日間照顧中心</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#1D4ED8;line-height:1;">81<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">家</span></div>
+            <div style="font-size:.68rem;color:#1E3A8A;margin-top:.2rem;">72 國中學區已開辦 58 區｜達成率 80.56%</div>
+          </div>
+          <div style="background:#FFF7ED;border:1px solid #FED7AA;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#C2410C;margin-bottom:.35rem;">👤 列冊獨居長者</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#C2410C;line-height:1;">10,223<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">人</span></div>
+            <div style="font-size:.68rem;color:#7C2D12;margin-top:.2rem;">緊急救援安裝率 40.68%｜37 處社區共生關懷投入</div>
+          </div>
+          <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:10px;padding:.8rem 1rem;">
+            <div style="font-size:.7rem;font-weight:700;color:#92400E;margin-bottom:.35rem;">🏛️ 機構安置補助</div>
+            <div style="font-size:1.4rem;font-weight:900;color:#92400E;line-height:1;">29,250<span style="font-size:.75rem;font-weight:600;margin-left:.2rem;">元／月</span></div>
+            <div style="font-size:.68rem;color:#78350F;margin-top:.2rem;">114/1 調升｜中低收入重度失能長者入住本市機構最高補助</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 5 — WELFARE ══════════════════════ -->
+  <section class="section" id="welfare">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#FFFBEB,#FEF3C7);">🤲</div>
+      <div>
+        <h2>支撐弱勢群體自立，推動多元共融社會</h2>
+        <p class="sub">社會救助・食物銀行・街友服務・微型保險・脆弱家庭</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#F97316,transparent)"></div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F97316"></div>
+        <div class="kpi-label">實物銀行發放（人次）</div>
+        <div class="kpi-value" style="color:#F97316">12.5<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">125,007 人次受益｜135,636 份物資</div>
+        <div class="kpi-trend trend-up">↑ 24 分行覆蓋全市</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#22C55E"></div>
+        <div class="kpi-label">希望好食堂（人次）</div>
+        <div class="kpi-value" style="color:#22C55E">3.2<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">32,107 人次｜365 家愛心餐食店</div>
+        <div class="kpi-trend trend-up">↑ 公私協力擴大</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F59E0B"></div>
+        <div class="kpi-label">微型保險（累計受益）</div>
+        <div class="kpi-value" style="color:#F59E0B">6.6<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">110–114 年累計人次</div>
+        <div class="kpi-trend trend-neutral">114 年納保 1.3 萬人</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#6366F1"></div>
+        <div class="kpi-label">脆弱家庭服務案件</div>
+        <div class="kpi-value" style="color:#6366F1">2.3<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">22,795 案｜12 區社福中心</div>
+        <div class="kpi-trend trend-neutral">持續提供整合服務</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- 多元餐食 -->
+      <div class="chart-card">
+        <div class="chart-title">🍱 多元愛心餐食服務（114 年）</div>
+        <div class="chart-note">各類餐食計畫服務量</div>
+        <div class="chart-wrap" style="height:200px;">
+          <canvas id="foodPie"></canvas>
+        </div>
+      </div>
+
+      <!-- 街友自立 -->
+      <div class="chart-card">
+        <div class="chart-title">🏃 街友脫遊自立服務（114 年）</div>
+        <div class="chart-note">協助街友重回社區成果</div>
+        <div style="margin-top:.5rem;">
+          <div class="prog-item">
+            <div class="prog-header">
+              <span class="prog-label">脫遊安置（人）</span>
+              <span class="prog-value" style="color:#7C3AED;">211 人</span>
+            </div>
+            <div class="prog-bar-bg">
+              <div class="prog-bar-fill" style="width:70%;background:linear-gradient(90deg,#8B5CF6,#6366F1)"></div>
+            </div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-header">
+              <span class="prog-label">求職登記服務（人）</span>
+              <span class="prog-value" style="color:#F97316;">339 人</span>
+            </div>
+            <div class="prog-bar-bg">
+              <div class="prog-bar-fill" style="width:100%;background:linear-gradient(90deg,#F97316,#F59E0B)"></div>
+            </div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-header">
+              <span class="prog-label">推介面試（人）</span>
+              <span class="prog-value" style="color:#0D9488;">313 人</span>
+            </div>
+            <div class="prog-bar-bg">
+              <div class="prog-bar-fill" style="width:92%;background:linear-gradient(90deg,#14B8A6,#0D9488)"></div>
+            </div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-header">
+              <span class="prog-label">協助就業成功（人）</span>
+              <span class="prog-value" style="color:#16A34A;">271 人</span>
+            </div>
+            <div class="prog-bar-bg">
+              <div class="prog-bar-fill" style="width:80%;background:linear-gradient(90deg,#22C55E,#16A34A)"></div>
+            </div>
+          </div>
+          <div class="prog-item">
+            <div class="prog-header">
+              <span class="prog-label">健康醫療協助（人次）</span>
+              <span class="prog-value" style="color:#DB2777;">5,272 人次</span>
+            </div>
+            <div class="prog-bar-bg">
+              <div class="prog-bar-fill" style="width:95%;background:linear-gradient(90deg,#FB7185,#DB2777)"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 6 — PROTECTION ══════════════════════ -->
+  <section class="section" id="protect">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#FEE2E2,#FECACA);">🚨</div>
+      <div>
+        <h2>完備社會安全網絡，提升保護服務量能</h2>
+        <p class="sub">家庭暴力・性侵害防治・兒少保護・社區安全網</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#EF4444,transparent)"></div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#EF4444"></div>
+        <div class="kpi-label">家庭暴力通報案件</div>
+        <div class="kpi-value" style="color:#EF4444">1.99<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">19,886 件（114 年）</div>
+        <div class="kpi-trend trend-up" style="background:#FEE2E2;color:#DC2626;">↑ 較上年 +6.78%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F97316"></div>
+        <div class="kpi-label">性侵害通報案件</div>
+        <div class="kpi-value" style="color:#F97316">1,189</div>
+        <div class="kpi-sub">114 年案件量</div>
+        <div class="kpi-trend trend-up" style="background:#FEE2E2;color:#DC2626;">↑ 較上年 +12.06%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#8B5CF6"></div>
+        <div class="kpi-label">社安網跨局合作輔導</div>
+        <div class="kpi-value" style="color:#8B5CF6">751</div>
+        <div class="kpi-sub">105–114 年累計風險個案</div>
+        <div class="kpi-trend trend-neutral">已除管 736 案</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#14B8A6"></div>
+        <div class="kpi-label">社區互助受益人次</div>
+        <div class="kpi-value" style="color:#14B8A6">1.43<span style="font-size:.9rem;font-weight:600">萬</span></div>
+        <div class="kpi-sub">14,266 人次｜265 場宣導</div>
+        <div class="kpi-trend trend-up">↑ 社區初級預防</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- 家暴分類 Doughnut -->
+      <div class="chart-card">
+        <div class="chart-title">📊 114 年家庭暴力通報案件分類</div>
+        <div class="chart-note">共 19,886 件</div>
+        <div class="chart-wrap" style="height:240px;">
+          <canvas id="dvPie"></canvas>
+        </div>
+      </div>
+
+      <!-- 社安網架構 -->
+      <div class="chart-card">
+        <div class="chart-title">🕸️ 社會安全網六大服務網絡</div>
+        <div class="chart-note">本局整合跨局處協作</div>
+        <div style="margin-top:.5rem;">
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FEE2E2;">👨‍👩‍👧</div>
+            <div class="list-body">
+              <div class="list-title">社福服務中心網</div>
+              <div class="list-desc">12 區社福中心｜22,795 案脆弱家庭服務</div>
+            </div>
+            <div class="list-num" style="color:#DC2626;">12 處</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#FFF7ED;">🏥</div>
+            <div class="list-body">
+              <div class="list-title">心理衛生服務網</div>
+              <div class="list-desc">精障會所 ＋ 情緒行為支持中心</div>
+            </div>
+            <div class="list-num" style="color:#EA580C;">4 會所</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#DBEAFE;">🚨</div>
+            <div class="list-body">
+              <div class="list-title">保護服務網</div>
+              <div class="list-desc">家防中心｜責任通報 1,419 人次受訓</div>
+            </div>
+            <div class="list-num" style="color:#2563EB;">1 中心</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#DCFCE7;">🏘️</div>
+            <div class="list-body">
+              <div class="list-title">社宅關懷網（第八網）</div>
+              <div class="list-desc">114 年個案研討 72 場｜聯繫會議 36 場</div>
+            </div>
+            <div class="list-num" style="color:#16A34A;">72 場</div>
+          </div>
+          <div class="list-item">
+            <div class="list-bullet" style="background:#EDE9FE;">🔍</div>
+            <div class="list-body">
+              <div class="list-title">社安風險篩選</div>
+              <div class="list-desc">33 項指標篩選｜已篩查 1,961 人次</div>
+            </div>
+            <div class="list-num" style="color:#7C3AED;">1,961 次</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════ SECTION 7 — BUDGET ══════════════════════ -->
+  <section class="section" id="budget">
+    <div class="section-header">
+      <div class="section-icon" style="background:linear-gradient(135deg,#DBEAFE,#BFDBFE);">💰</div>
+      <div>
+        <h2>預算資源與機構布建</h2>
+        <p class="sub">社會局主管預算趨勢・業務案件統計・未來布建規劃</p>
+      </div>
+      <div class="section-divider" style="background:linear-gradient(90deg,#3B82F6,transparent)"></div>
+    </div>
+
+    <div class="grid-4" style="margin-bottom:1rem;">
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#3B82F6"></div>
+        <div class="kpi-label">114 年主管預算</div>
+        <div class="kpi-value" style="color:#3B82F6">280.8<span style="font-size:.9rem;font-weight:600">億</span></div>
+        <div class="kpi-sub">28,080,955,000 元</div>
+        <div class="kpi-trend trend-up">↑ 占市府總預算 13.01%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#6366F1"></div>
+        <div class="kpi-label">115 年主管預算</div>
+        <div class="kpi-value" style="color:#6366F1">219<span style="font-size:.9rem;font-weight:600">億</span></div>
+        <div class="kpi-sub">21,901,562,000 元</div>
+        <div class="kpi-trend trend-down">占市府總預算 10.24%</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#0D9488"></div>
+        <div class="kpi-label">公辦民營案件數</div>
+        <div class="kpi-value" style="color:#0D9488">290</div>
+        <div class="kpi-sub">涵蓋各類社福設施</div>
+        <div class="kpi-trend trend-neutral">＋方案委託 16 案</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-glow" style="background:#F59E0B"></div>
+        <div class="kpi-label">公辦公營機構</div>
+        <div class="kpi-value" style="color:#F59E0B">22</div>
+        <div class="kpi-sub">直營服務機構</div>
+        <div class="kpi-trend trend-neutral">＋招租 27 案</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- 預算趨勢 -->
+      <div class="chart-card">
+        <div class="chart-title">📈 社會局主管預算趨勢（104–115 年）</div>
+        <div class="chart-note">單位：億元｜備註：114 年度以前含追加減預算</div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="budgetLine"></canvas>
+        </div>
+      </div>
+
+      <!-- 業務案件分布 -->
+      <div class="chart-card">
+        <div class="chart-title">🏗️ 業務案件類型分布</div>
+        <div class="chart-note">截至 114 年 12 月底（總計 355 案）</div>
+        <div class="chart-wrap" style="height:260px;">
+          <canvas id="caseBar"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- 未來布建計畫 -->
+    <div class="chart-card" style="margin-top:1rem;">
+      <div class="chart-title">🗓️ 115–116 年社福布建計畫</div>
+      <div class="chart-note">各類新開辦機構與據點規劃</div>
+      <div class="grid-3" style="margin-top:.75rem;gap:.75rem;">
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:#FB7185;margin-bottom:.5rem;">🍼 育兒服務</div>
+          <div class="list-item" style="padding:.5rem 0;">
+            <div class="list-body">
+              <div class="list-title">115 年</div>
+              <div class="list-desc">公辦民營托嬰中心 14 家 ＋ 社區托育家園 2 家</div>
+            </div>
+            <span class="tag" style="background:#FCE7F3;color:#DB2777;">16 家</span>
+          </div>
+          <div class="list-item" style="padding:.5rem 0;">
+            <div class="list-body">
+              <div class="list-title">116 年</div>
+              <div class="list-desc">公辦民營托嬰中心 3 家 ＋ 社區托育家園 2 家</div>
+            </div>
+            <span class="tag" style="background:#FCE7F3;color:#DB2777;">5 家</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:#8B5CF6;margin-bottom:.5rem;">♿ 身障服務</div>
+          <div class="list-item" style="padding:.5rem 0;">
+            <div class="list-body">
+              <div class="list-title">115 年</div>
+              <div class="list-desc">日間作業設施 3 處｜社區居住家園 4 處｜精障會所 1 家</div>
+            </div>
+            <span class="tag" style="background:#EDE9FE;color:#7C3AED;">8 處</span>
+          </div>
+          <div class="list-item" style="padding:.5rem 0;">
+            <div class="list-body">
+              <div class="list-title">116 年</div>
+              <div class="list-desc">精障會所 1 家｜身障日間服務機構 2 家｜社區居住 2 處</div>
+            </div>
+            <span class="tag" style="background:#EDE9FE;color:#7C3AED;">5 處</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:#14B8A6;margin-bottom:.5rem;">🧓 高齡服務</div>
+          <div class="list-item" style="padding:.5rem 0;">
+            <div class="list-body">
+              <div class="list-title">115 年</div>
+              <div class="list-desc">日照中心 6 家｜老人服務中心 1 家｜社區關懷據點 3 處</div>
+            </div>
+            <span class="tag" style="background:#CCFBF1;color:#0D9488;">10 處</span>
+          </div>
+          <div class="list-item" style="padding:.5rem 0;">
+            <div class="list-body">
+              <div class="list-title">116 年</div>
+              <div class="list-desc">日照中心 3 家｜老人服務中心 1 家</div>
+            </div>
+            <span class="tag" style="background:#CCFBF1;color:#0D9488;">4 處</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════ FOOTER ══════════════════════ -->
+<footer>
+  <strong>臺北市政府社會局</strong> 業務綜覽儀表板 ·
+  資料來源：臺北市議會第 14 屆第 7 次定期大會社會局工作報告（中華民國 115 年 4 月）·
+  本儀表板數據基準為 <strong>114 年 12 月底</strong>
+</footer>
+
+<script>
+// ─── SCROLL NAV ───────────────────────────────────────────
+function navTo(btn, id) {
+  const el = document.getElementById(id);
+  if (el) {
+    const stickyOffset = 68 + 48 + 16; // top-header + nav-bar + 留白
+    const top = el.getBoundingClientRect().top + window.scrollY - stickyOffset;
+    window.scrollTo({ top, behavior: 'smooth' });
+  }
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ─── CHART DEFAULTS ───────────────────────────────────────
+Chart.defaults.font.family = "'Noto Sans TC', 'PingFang TC', sans-serif";
+Chart.defaults.font.size = 11;
+Chart.defaults.color = '#78716C';
+
+const WARM = ['#F59E0B','#F97316','#FB7185','#FB923C','#FBBF24','#FDE68A'];
+const COOL = ['#14B8A6','#3B82F6','#8B5CF6','#22C55E','#0891B2','#6366F1'];
+const ALL  = [...WARM, ...COOL];
+
+// ─── 1. Population Trend ──────────────────────────────────
+new Chart(document.getElementById('popTrend'), {
+  type: 'line',
+  data: {
+    labels: ['105','106','107','108','109','110','111','112','113','114'],
+    datasets: [
+      {
+        label: '老年人口', data: [41.9,43.9,45.9,47.8,49.6,50.4,51.9,55.3,57.4,58.9],
+        borderColor: '#14B8A6', backgroundColor: 'rgba(20,184,166,.08)',
+        borderWidth: 2.5, tension: .4, fill: true, pointRadius: 3,
+      },
+      {
+        label: '兒童人口', data: [30.4,30.3,29.8,28.9,27.9,26.2,25.1,24.6,23.5,22.2],
+        borderColor: '#FB7185', backgroundColor: 'rgba(251,113,133,.08)',
+        borderWidth: 2.5, tension: .4, fill: true, pointRadius: 3,
+      },
+      {
+        label: '身障人口', data: [12.2,12.1,12.1,12.1,12.0,11.9,11.7,11.9,12.1,12.2],
+        borderColor: '#8B5CF6', backgroundColor: 'rgba(139,92,246,.06)',
+        borderWidth: 2.5, tension: .4, fill: true, pointRadius: 3,
+      },
+      {
+        label: '低收入戶人數', data: [4.7,4.6,4.5,4.5,4.5,4.5,4.4,4.2,4.1,3.8],
+        borderColor: '#F97316', backgroundColor: 'rgba(249,115,22,.06)',
+        borderWidth: 2, tension: .4, fill: true, pointRadius: 3,
+      },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 14, boxWidth: 12 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#F5F5F4' }, ticks: { callback: v => v + '萬' } }
+    }
+  }
+});
+
+// ─── 2. Population Pie ───────────────────────────────────
+new Chart(document.getElementById('popPie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['老年人口 58.9萬','兒童 22.2萬','少年 12.8萬','身障 12.2萬','低收 3.8萬','其他'],
+    datasets: [{
+      data: [58.9, 22.2, 12.8, 12.2, 3.8, 133.6],
+      backgroundColor: ['#14B8A6','#FB7185','#F59E0B','#8B5CF6','#F97316','#E7E5E4'],
+      borderWidth: 2, borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '62%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 8, boxWidth: 10, font: { size: 10 } } },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + ctx.raw + '萬' } }
+    }
+  }
+});
+
+// ─── 3. Childcare Bar ────────────────────────────────────
+new Chart(document.getElementById('childcareBar'), {
+  type: 'bar',
+  data: {
+    labels: ['公辦民營\n托嬰機構','社區公共\n托育家園','親子館','育兒\n友善園','定點\n臨托','居家\n托育中心'],
+    datasets: [{
+      label: '家/處數',
+      data: [29, 63, 13, 13, 24, 10],
+      backgroundColor: ['#FB7185','#FB923C','#FBBF24','#F59E0B','#FDE68A','#FCA5A5'],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { color: '#F5F5F4' } },
+      y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+    }
+  }
+});
+
+// ─── 4. Disability Bar ───────────────────────────────────
+new Chart(document.getElementById('disabilityBar'), {
+  type: 'bar',
+  data: {
+    labels: ['臨時短期\n照顧服務','輔具服務\n（人）','身障者服務\n中心（案）','社區日照\n（人次）','社區日間\n作業（人）','自立生活\n（人次）'],
+    datasets: [{
+      data: [15463, 113514, 6659, 60353, 522, 11832],
+      backgroundColor: ['#8B5CF6','#6366F1','#A78BFA','#7C3AED','#C4B5FD','#DDD6FE'],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#F5F5F4' }, ticks: { callback: v => v >= 1000 ? (v/1000).toFixed(0)+'K' : v } }
+    }
+  }
+});
+
+// ─── 5. Elderly — 改為指標卡，不需圖表 JS ────────────────
+
+// ─── 6. Food Pie ─────────────────────────────────────────
+new Chart(document.getElementById('foodPie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['實物銀行\n12.5萬人次','希望好食堂\n3.2萬人次','惜食廚房\n2.96萬份','盛食交流\n1.18萬人次','便當機\n1.89萬份'],
+    datasets: [{
+      data: [125007, 32107, 29614, 11831, 18923],
+      backgroundColor: ['#F97316','#FBBF24','#22C55E','#14B8A6','#FB7185'],
+      borderWidth: 2, borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '55%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 8, boxWidth: 10, font: { size: 10 } } },
+    }
+  }
+});
+
+// ─── 7. DV Pie ───────────────────────────────────────────
+new Chart(document.getElementById('dvPie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['親密關係 9,002','兒少保護 3,197','老人保護 2,116','其他家虐 5,571'],
+    datasets: [{
+      data: [9002, 3197, 2116, 5571],
+      backgroundColor: ['#EF4444','#FB7185','#F97316','#FBBF24'],
+      borderWidth: 2, borderColor: '#fff',
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '58%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 8, boxWidth: 10, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ' 件' } }
+    }
+  }
+});
+
+// ─── 8. Budget Line ──────────────────────────────────────
+new Chart(document.getElementById('budgetLine'), {
+  type: 'bar',
+  data: {
+    labels: ['104','105','106','107','108','109','110','111','112','113','114','115'],
+    datasets: [
+      {
+        type: 'bar',
+        label: '主管預算（億元）',
+        data: [166.6,165.1,176.7,206.5,207.2,210.9,225.7,250.6,272.6,261.8,280.8,219.0],
+        backgroundColor: [
+          ...Array(10).fill('rgba(245,158,11,.6)'),
+          'rgba(249,115,22,.85)',
+          'rgba(59,130,246,.6)'
+        ],
+        borderRadius: 5, borderSkipped: false,
+      },
+      {
+        type: 'line',
+        label: '占市府預算%',
+        data: [10.28,10.13,10.34,11.86,12.28,12.28,12.09,13.56,14.22,12.77,13.01,10.24],
+        borderColor: '#EF4444', backgroundColor: 'transparent',
+        borderWidth: 2, tension: .4, pointRadius: 3,
+        yAxisID: 'y2',
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom', labels: { padding: 14, boxWidth: 12 } } },
+    scales: {
+      x: { grid: { display: false } },
+      y: { grid: { color: '#F5F5F4' }, ticks: { callback: v => v + '億' }, position: 'left' },
+      y2: {
+        position: 'right', grid: { display: false },
+        ticks: { callback: v => v + '%' },
+        min: 8, max: 16,
+      }
+    }
+  }
+});
+
+// ─── 9. Case Type Bar ───────────────────────────────────
+new Chart(document.getElementById('caseBar'), {
+  type: 'bar',
+  data: {
+    labels: ['嬰幼兒\n托育服務','身心障礙\n者服務','銀髮族\n服務','兒童少年\n服務','婦女\n服務','貧困危機\n服務','社區服務\nNPO培力','保護性\n服務'],
+    datasets: [{
+      label: '案件數',
+      data: [119, 93, 61, 34, 19, 23, 3, 3],
+      backgroundColor: ['#FB7185','#8B5CF6','#14B8A6','#F59E0B','#EC4899','#F97316','#22C55E','#EF4444'],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false } },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { grid: { color: '#F5F5F4' } }
+    }
+  }
+});
+
+// ─── Scroll spy for nav ──────────────────────────────────
+const sections = ['pop','child','disable','elderly','welfare','protect','budget'];
+const tabs = document.querySelectorAll('.nav-tab');
+let isManualScroll = false;
+window.addEventListener('scroll', () => {
+  if (isManualScroll) return;
+  let current = 'pop';
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= 68 + 48 + 32) current = id;
+  });
+  tabs.forEach((t, i) => {
+    t.classList.toggle('active', sections[i] === current);
+  });
+}, { passive: true });
+</script>
+</body>
+</html>
